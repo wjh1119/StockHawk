@@ -6,13 +6,19 @@ import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.preference.PreferenceManager;
+import android.support.annotation.IntDef;
 
+import com.udacity.stockhawk.R;
 import com.udacity.stockhawk.data.Contract;
 import com.udacity.stockhawk.data.PrefUtils;
 
 import java.io.IOException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashSet;
@@ -37,6 +43,18 @@ public final class QuoteSyncJob {
     private static final int PERIODIC_ID = 1;
     private static final int YEARS_OF_HISTORY = 2;
 
+
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({STOCKS_STATUS_OK, STOCKS_STATUS_SERVER_DOWN, STOCKS_STATUS_SERVER_INVALID,  STOCKS_STATUS_UNKNOWN})
+    public @interface StocksStatus {}
+
+    public static final int STOCKS_STATUS_OK = 0;
+    public static final int STOCKS_STATUS_SERVER_DOWN = 1;
+    public static final int
+            STOCKS_STATUS_SERVER_INVALID = 2;
+    public static final int
+            STOCKS_STATUS_UNKNOWN = 3;
+
     private QuoteSyncJob() {
     }
 
@@ -58,6 +76,7 @@ public final class QuoteSyncJob {
             Timber.d(stockCopy.toString());
 
             if (stockArray.length == 0) {
+                setStocksStatus(context,STOCKS_STATUS_SERVER_DOWN);
                 return;
             }
 
@@ -168,5 +187,16 @@ public final class QuoteSyncJob {
         }
     }
 
-
+    /**
+     * Sets the stock status into shared preference.  This function should not be called from
+     * the UI thread because it uses commit to write to the shared preferences.
+     * @param c Context to get the PreferenceManager from.
+     * @param stocksStatus The IntDef value to set
+     */
+    static private void setStocksStatus(Context c, @StocksStatus int stocksStatus){
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(c);
+        SharedPreferences.Editor spe = sp.edit();
+        spe.putInt(c.getString(R.string.pref_stocks_status_key), stocksStatus);
+        spe.commit();
+    }
 }

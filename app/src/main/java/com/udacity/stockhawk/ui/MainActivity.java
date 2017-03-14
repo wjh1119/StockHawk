@@ -150,6 +150,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             error.setVisibility(View.GONE);
         }
         adapter.setCursor(data);
+
+        updateEmptyView();
     }
 
 
@@ -188,5 +190,22 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    /*
+        Updates the empty list view with contextually relevant information that the user can
+        use to determine why they aren't seeing weather.
+     */
+    private void updateEmptyView() {
+        if ( adapter.getItemCount() == 0 ) {
+            if ( null != emptyView) {
+                // if cursor is empty, why? do we have an invalid location
+                int message = R.string.error_no_stocks;
+                if (!networkUp() ) {
+                    message = R.string.error_no_network;
+                }
+                emptyView.setText(message);
+            }
+        }
     }
 }
