@@ -91,6 +91,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         ConnectivityManager cm =
                 (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = cm.getActiveNetworkInfo();
+//        updateEmptyView();
         return networkInfo != null && networkInfo.isConnectedOrConnecting();
     }
 
@@ -120,6 +121,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     void addStock(String symbol) {
+        if (PrefUtils.getStocks(this).contains(symbol)) {
+            Toast.makeText(this, R.string.error_repetitive_stock, Toast.LENGTH_LONG).show();
+            return;
+        }
         if (symbol != null && !symbol.isEmpty()) {
 
             if (networkUp()) {
