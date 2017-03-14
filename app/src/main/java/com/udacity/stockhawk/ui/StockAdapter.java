@@ -23,15 +23,17 @@ import butterknife.ButterKnife;
 class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHolder> {
 
     private final Context context;
+    private final View emptyView;
     private final DecimalFormat dollarFormatWithPlus;
     private final DecimalFormat dollarFormat;
     private final DecimalFormat percentageFormat;
     private Cursor cursor;
     private final StockAdapterOnClickHandler clickHandler;
 
-    StockAdapter(Context context, StockAdapterOnClickHandler clickHandler) {
+    StockAdapter(Context context, StockAdapterOnClickHandler clickHandler, View emptyView) {
         this.context = context;
         this.clickHandler = clickHandler;
+        this.emptyView = emptyView;
 
         dollarFormat = (DecimalFormat) NumberFormat.getCurrencyInstance(Locale.US);
         dollarFormatWithPlus = (DecimalFormat) NumberFormat.getCurrencyInstance(Locale.US);
@@ -45,6 +47,7 @@ class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHolder> {
     void setCursor(Cursor cursor) {
         this.cursor = cursor;
         notifyDataSetChanged();
+        emptyView.setVisibility(getItemCount() == 0 ? View.VISIBLE : View.GONE);
     }
 
     String getSymbolAtPosition(int position) {

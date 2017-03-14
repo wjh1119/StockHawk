@@ -40,6 +40,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @BindView(R.id.swipe_refresh)
     SwipeRefreshLayout swipeRefreshLayout;
     @SuppressWarnings("WeakerAccess")
+    @BindView(R.id.recycler_empty)
+    TextView emptyView;
+    @SuppressWarnings("WeakerAccess")
     @BindView(R.id.error)
     TextView error;
     private StockAdapter adapter;
@@ -56,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        adapter = new StockAdapter(this, this);
+        adapter = new StockAdapter(this, this, emptyView);
         stockRecyclerView.setAdapter(adapter);
         stockRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
