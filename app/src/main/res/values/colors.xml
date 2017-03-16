@@ -1,11 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
+
+    <!-- using the "Deep Purple" Material Palette -->
+    <color name="primary">#673AB7</color>  <!-- 500 -->
+    <color name="primary_dark">#512DA8</color>  <!-- 700 -->
+    <color name="primary_light">#D1C4E9</color> <!-- 100 -->
+    <color name="accent">#FF9800</color>
+    <color name="primary_text">#212121</color>
+    <color name="secondary_text">#727272</color>
+    <color name="white_text">#FFFFFF</color>
 
     <color name="material_blue_500">#2196F3</color>
     <color name="material_red_700">#D50000</color>
     <color name="material_green_700">#00C853</color>
+
+    <!-- the activated state color -->
+    <color name="activated">#E0E0E0</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
 
 </resources>

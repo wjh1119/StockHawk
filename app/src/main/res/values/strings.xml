@@ -35,4 +35,5 @@
     <string name="toast_no_connectivity">Will refresh when network available.</string>
     <string name="recycler_empty_text">No Stock Information Available</string>
 
+    <string name="title_widget_stock">aaa</string>
 </resources>
