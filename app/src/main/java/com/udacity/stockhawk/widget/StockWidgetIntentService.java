@@ -99,10 +99,8 @@ public class StockWidgetIntentService extends IntentService {
         float percentageChange = firstStock.getFloat(INDEX_PERCENTAGE_CHANGE);
 
         final DecimalFormat dollarFormatWithPlus;
-        final DecimalFormat dollarFormat;
         final DecimalFormat percentageFormat;
 
-        dollarFormat = (DecimalFormat) NumberFormat.getCurrencyInstance(Locale.US);
         dollarFormatWithPlus = (DecimalFormat) NumberFormat.getCurrencyInstance(Locale.US);
         dollarFormatWithPlus.setPositivePrefix("+$");
         percentageFormat = (DecimalFormat) NumberFormat.getPercentInstance(Locale.getDefault());

@@ -28,15 +28,14 @@
         android:padding="4dp">
 
         <TextView
+            style="@style/StockWidgetSymbolTextViewStyle"
             android:id="@+id/widget_symbol"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_gravity="center_horizontal"
+            android:gravity="center"
             android:layout_weight="1"
-            android:text="symbol"
             tools:text="symbol"
-            android:textSize="12sp"
-            android:textColor="@color/white_text"/>
+            android:textSize="@dimen/StockWidgetTextStyle_small" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -51,10 +50,8 @@
                 android:layout_weight="1"
                 android:fontFamily="sans-serif"
                 android:textAppearance="?android:textAppearanceLarge"
-                android:textColor="@color/white_text"
-                android:text="3.00"
                 tools:text="3.00"
-                android:textSize="12sp" />
+                android:textSize="@dimen/StockWidgetTextStyle_small" />
 
             <TextView
                 android:id="@+id/widget_change"
@@ -64,10 +61,8 @@
                 android:gravity="center"
                 android:fontFamily="sans-serif"
                 android:textAppearance="?android:textAppearanceLarge"
-                android:textColor="@color/white_text"
-                android:text="0.03"
                 tools:text="0.03"
-                android:textSize="12sp"/>
+                android:textSize="@dimen/StockWidgetTextStyle_small"/>
 
         </LinearLayout>
     </LinearLayout>

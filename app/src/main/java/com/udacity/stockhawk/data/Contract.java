@@ -41,6 +41,9 @@ public final class Contract {
         );
         static final String TABLE_NAME = "quotes";
 
+        public static final Uri CONTENT_URI =
+                BASE_URI.buildUpon().appendPath(PATH_QUOTE).build();
+
         public static Uri makeUriForStock(String symbol) {
             return URI.buildUpon().appendPath(symbol).build();
         }
