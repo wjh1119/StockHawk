@@ -1,23 +1,26 @@
 package com.udacity.stockhawk.ui;
 
-import android.graphics.Color;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.components.Description;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.data.LineDataSet;
+import com.udacity.stockhawk.FetchHistoryTask;
+import com.udacity.stockhawk.LineChartManager;
 import com.udacity.stockhawk.R;
+import com.udacity.stockhawk.ToastUtil;
 import com.udacity.stockhawk.bean.DataParse;
-import com.udacity.stockhawk.bean.KLineBean;
 
 import java.util.ArrayList;
 
@@ -28,24 +31,25 @@ import butterknife.ButterKnife;
  * Created by Mr.King on 2017/3/18 0018.
  */
 
-public class DetailFragment extends Fragment{
+public class DetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
 
     @BindView(R.id.lineChart)
-    LineChart lineChart;
+    LineChart mLineChart;
 
     static final String DETAIL_URI = "URI";
 
-    private DataParse mData;
-    private ArrayList<KLineBean> kLineDatas;
     XAxis xAxisBar, xAxisK;
     YAxis axisLeftBar, axisLeftK;
     YAxis axisRightBar, axisRightK;
 
     private View mView;
-
     private Uri mUri;
+    private String mHistory;
+    private Cursor mCursor;
+    private DataParse mData = new DataParse();
+    private static final int DETAIL_LOADER = 0;
+    private static final Description mCharDescription= new Description();
 
-    private String mHistroy;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -59,79 +63,93 @@ public class DetailFragment extends Fragment{
         }
 
         ButterKnife.bind(this, mView);
-        initChart();
-//        setData();
+        //设置图表的描述
+        mCharDescription.setText("\"全省移网\"");
+        mLineChart.setDescription(mCharDescription);
+        //设置x轴的数据
+        ArrayList<String> xValues = new ArrayList<>();
+        for (int i = 0; i < 15; i++) {
+            xValues.add("" + i);
+        }
+        //设置y轴的数据
+        ArrayList<Entry> yValue = new ArrayList<>();
+        yValue.add(new Entry(13, 1));
+        yValue.add(new Entry(6, 2));
+        yValue.add(new Entry(3, 3));
+        yValue.add(new Entry(7, 4));
+        yValue.add(new Entry(2, 5));
+        yValue.add(new Entry(5, 6));
+        yValue.add(new Entry(12, 7));
+        //设置折线的名称
+        LineChartManager.setLineName("当月值");
+        //创建一条折线的图表
+        //LineChartManager.initSingleLineChart(context,mLineChart,xValues,yValue);
+        //设置第二条折线y轴的数据
+        ArrayList<Entry> yValue1 = new ArrayList<>();
+        yValue1.add(new Entry(17, 1));
+        yValue1.add(new Entry(3, 2));
+        yValue1.add(new Entry(5, 3));
+        yValue1.add(new Entry(4, 4));
+        yValue1.add(new Entry(3, 5));
+        yValue1.add(new Entry(7, 6));
+        yValue1.add(new Entry(10, 7));
+        LineChartManager.setLineName1("上月值");
+        //创建两条折线的图表
+        LineChartManager.initDoubleLineChart(getContext(),mLineChart,xValues,yValue,yValue1);
         return mView;
     }
 
-    private void initChart() {
-        lineChart.setDrawBorders(true);
-        lineChart.setBorderWidth(1);
-        lineChart.setBorderColor(getResources().getColor(R.color.minute_grayLine));
-//        lineChart.setDescription("");
-        lineChart.setDragEnabled(true);
-        lineChart.setScaleYEnabled(false);
-        lineChart.setAutoScaleMinMaxEnabled(true);
-        Legend lineChartLegend = lineChart.getLegend();
-        lineChartLegend.setEnabled(false);
-        //bar x y轴
-        xAxisBar = lineChart.getXAxis();
-        xAxisBar.setDrawLabels(true);
-        xAxisBar.setDrawGridLines(false);
-        xAxisBar.setDrawAxisLine(false);
-        xAxisBar.setTextColor(getResources().getColor(R.color.minute_axis_text));
-        xAxisBar.setPosition(XAxis.XAxisPosition.BOTTOM);
-        xAxisBar.setGridColor(getResources().getColor(R.color.minute_grayLine));
-
-        axisLeftBar = lineChart.getAxisLeft();
-        axisLeftBar.setAxisMinValue(0);
-        axisLeftBar.setDrawGridLines(false);
-        axisLeftBar.setDrawAxisLine(false);
-        axisLeftBar.setTextColor(getResources().getColor(R.color.minute_axis_text));
-        axisLeftBar.setDrawLabels(true);
-//        axisLeftBar.setShowOnlyMinMax(true);
-        axisRightBar = lineChart.getAxisRight();
-        axisRightBar.setDrawLabels(false);
-        axisRightBar.setDrawGridLines(false);
-        axisRightBar.setDrawAxisLine(false);
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        //加载Loader
+        getLoaderManager().initLoader(DETAIL_LOADER, null, this);
+        super.onActivityCreated(savedInstanceState);
     }
 
-    private void setData() {
-
-        ArrayList<String> xValues = new ArrayList<String>();
-        int count = 10;
-        int range = 10;
-        for (int i = 0; i < count; i++) {
-            // x轴显示的数据，这里默认使用数字下标显示
-            xValues.add("" + i);
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        // Now create and return a CursorLoader that will take care of
+        // creating a Cursor for the data being displayed.
+        if ( null != mUri ) {
+            return new CursorLoader(
+                    getActivity(),
+                    mUri,
+                    null,
+                    null,
+                    null,
+                    null
+            );
         }
+        return null;
+    }
 
-        // y轴的数据
-        ArrayList<Entry> yValues = new ArrayList<Entry>();
-        for (int i = 0; i < count; i++) {
-            float value = (float) (Math.random() * range) + 3;
-            yValues.add(new Entry(value, i));
-        }
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
 
-        // create a dataset and give it a type
-        // y轴的数据集合
-        LineDataSet yLineDataSet = new LineDataSet(yValues, "测试折线图" /*显示在比例图上*/);
-        // mLineDataSet.setFillAlpha(110);
-        // mLineDataSet.setFillColor(Color.RED);
+        if (!data.moveToFirst()) { return; }
 
-        //用y轴的集合来设置参数
-        yLineDataSet.setLineWidth(1.75f); // 线宽
-        yLineDataSet.setCircleSize(3f);// 显示的圆形大小
-        yLineDataSet.setColor(Color.WHITE);// 显示颜色
-        yLineDataSet.setCircleColor(Color.WHITE);// 圆形的颜色
-        yLineDataSet.setHighLightColor(Color.WHITE); // 高亮的线的颜色
+        mCursor = data;
 
-        ArrayList<LineDataSet> lineDataSets = new ArrayList<LineDataSet>();
-        lineDataSets.add(yLineDataSet); // add the datasets
+        FetchHistoryTask fetchHistoryTask = new FetchHistoryTask(getContext());
+        fetchHistoryTask.setOnDataFinishedListener(new FetchHistoryTask.OnDataFinishedListener(){
+            @Override
+            public void onDataSuccessfully(String data) {
+                mHistory = data;
+                mData.parseKLine(mHistory);
+                mData.getKLineDatas();
+                ToastUtil.show(getContext(),"获取评论数据成功");
+            }
 
-        // create a data object with the datasets
-        LineData lineData = new LineData(yLineDataSet);
+            @Override
+            public void onDataFailed() {
+                ToastUtil.show(getContext(),"获取评论数据失败");
+            }
+        });
+        fetchHistoryTask.execute(mCursor);
+    }
 
-        lineChart.setData(lineData);
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
     }
 }

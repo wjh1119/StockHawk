@@ -11,10 +11,15 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.preference.PreferenceManager;
 import android.support.annotation.IntDef;
+import android.util.Log;
 
 import com.udacity.stockhawk.R;
 import com.udacity.stockhawk.data.Contract;
 import com.udacity.stockhawk.data.PrefUtils;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.lang.annotation.Retention;
@@ -41,7 +46,7 @@ public final class QuoteSyncJob {
     private static final int PERIOD = 300000;
     private static final int INITIAL_BACKOFF = 10000;
     private static final int PERIODIC_ID = 1;
-    private static final int YEARS_OF_HISTORY = 2;
+    private static final int YEARS_OF_HISTORY = 1;
 
 
     @Retention(RetentionPolicy.SOURCE)
@@ -100,7 +105,7 @@ public final class QuoteSyncJob {
 
                 // WARNING! Don't request historical data for a stock that doesn't exist!
                 // The request will hang forever X_x
-                List<HistoricalQuote> history = stock.getHistory(from, to, Interval.WEEKLY);
+                List<HistoricalQuote> history = stock.getHistory(from, to, Interval.DAILY);
 
                 StringBuilder historyBuilder = new StringBuilder();
 
@@ -111,6 +116,9 @@ public final class QuoteSyncJob {
                     historyBuilder.append("\n");
                 }
 
+                JSONObject historyJson = historicalQuoteListtoJson(history);
+                Log.d("QuoteSyncJob",historyJson.toString());
+
                 ContentValues quoteCV = new ContentValues();
                 quoteCV.put(Contract.Quote.COLUMN_SYMBOL, symbol);
                 quoteCV.put(Contract.Quote.COLUMN_PRICE, price);
@@ -118,7 +126,8 @@ public final class QuoteSyncJob {
                 quoteCV.put(Contract.Quote.COLUMN_ABSOLUTE_CHANGE, change);
 
 
-                quoteCV.put(Contract.Quote.COLUMN_HISTORY, historyBuilder.toString());
+//                quoteCV.put(Contract.Quote.COLUMN_HISTORY, historyBuilder.toString());
+                quoteCV.put(Contract.Quote.COLUMN_HISTORY, historyJson.toString());
 
                 quoteCVs.add(quoteCV);
 
@@ -136,6 +145,28 @@ public final class QuoteSyncJob {
         } catch (IOException exception) {
             Timber.e(exception, "Error fetching stock quotes");
         }
+    }
+
+    public static JSONObject historicalQuoteListtoJson(List<HistoricalQuote> history){
+        JSONObject historyJson = new JSONObject();
+        JSONArray jsonMembers = new JSONArray();
+        try{
+            for (HistoricalQuote it : history) {
+                JSONObject item = new JSONObject();
+                item.put("date", it.getDate().getTimeInMillis());
+                item.put("open", it.getOpen());
+                item.put("close",it.getClose());
+                item.put("high", it.getHigh());
+                item.put("low", it.getLow());
+                item.put("vol", it.getVolume());
+                jsonMembers.put(item);
+            }
+            historyJson.put("history",jsonMembers);
+        } catch (JSONException exception) {
+            Timber.e(exception, "Error fetching stock quotes");
+        }
+
+        return historyJson;
     }
 
     private static void schedulePeriodic(Context context) {
