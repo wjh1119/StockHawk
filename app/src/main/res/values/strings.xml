@@ -36,6 +36,6 @@
     <string name="recycler_empty_text">No Stock Information Available</string>
 
     <string name="title_widget_stock">StockHawk</string>
-    <string name="title_activity_detail">股票趋势线</string>
+    <string name="title_activity_detail">kLine</string>
     <string name="chart_no_data">No Data</string>
 </resources>

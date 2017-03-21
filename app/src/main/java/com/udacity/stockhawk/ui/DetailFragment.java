@@ -23,7 +23,10 @@ import com.github.mikephil.charting.components.YAxis.AxisDependency;
 import com.github.mikephil.charting.data.CandleData;
 import com.github.mikephil.charting.data.CandleDataSet;
 import com.github.mikephil.charting.data.CandleEntry;
+import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.formatter.IAxisValueFormatter;
+import com.github.mikephil.charting.highlight.Highlight;
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.udacity.stockhawk.FetchHistoryTask;
 import com.udacity.stockhawk.R;
 import com.udacity.stockhawk.ToastUtil;
@@ -49,9 +52,11 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     static final String DETAIL_URI = "URI";
 
-    XAxis xAxisBar, xAxisK;
-    YAxis axisLeftBar, axisLeftK;
-    YAxis axisRightBar, axisRightK;
+    XAxis xAxisK;
+    YAxis axisLeftK;
+    YAxis axisRightK;
+
+    ArrayList<String> mXVals = new ArrayList<>();
 
     private View mView;
     private Uri mUri;
@@ -101,40 +106,54 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     }
 
     private void initChart(){
-        mCandleStickChart.setBackgroundColor(Color.WHITE);
+        mCandleStickChart.setBackgroundColor(Color.BLACK);
 
         mCandleStickChart.getDescription().setEnabled(false);
 
         // if more than 60 entries are displayed in the chart, no values will be
         // drawn
-        mCandleStickChart.setMaxVisibleValueCount(60);
+//        mCandleStickChart.setMaxVisibleValueCount(30);
 
         // scaling can now only be done on x- and y-axis separately
         mCandleStickChart.setPinchZoom(false);
-
         mCandleStickChart.setDrawGridBackground(false);
+        mCandleStickChart.setDragEnabled(true);
+        mCandleStickChart.setScaleYEnabled(false);
+        mCandleStickChart.setDoubleTapToZoomEnabled(true);//双击缩放
+        mCandleStickChart.setDragDecelerationEnabled(true);
+        mCandleStickChart.setDragDecelerationFrictionCoef(0.99f);
 
-        XAxis xAxisK = mCandleStickChart.getXAxis();
+        mCandleStickChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
+            @Override
+            public void onValueSelected(Entry e, Highlight h) {
+                ToastUtil.show(getContext(),"date: "+
+                        formatMillisToDate(Long.parseLong(mXVals.get((int) h.getX())))+
+                        "\nprice: "+h.getY());
+                mCandleStickChart.highlightValues(new Highlight[]{h});
+            }
+
+            @Override
+            public void onNothingSelected() {
+                mCandleStickChart.highlightValue(null);
+            }
+        });
+
+        xAxisK = mCandleStickChart.getXAxis();
         xAxisK.setPosition(XAxisPosition.BOTTOM);
-        xAxisK.setDrawGridLines(false);
-
         xAxisK.setDrawLabels(true);
         xAxisK.setDrawGridLines(false);
         xAxisK.setDrawAxisLine(false);
+        xAxisK.setLabelCount(4, false);
         xAxisK.setTextColor(getResources().getColor(R.color.minute_axis_text));
-        xAxisK.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxisK.setGridColor(getResources().getColor(R.color.minute_grayLine));
-
-        YAxis leftAxis = mCandleStickChart.getAxisLeft();
-//        leftAxis.setEnabled(false);
-        leftAxis.setLabelCount(7, false);
-        leftAxis.setDrawGridLines(false);
-        leftAxis.setDrawAxisLine(false);
 
         axisLeftK = mCandleStickChart.getAxisLeft();
         axisLeftK.setDrawGridLines(true);
         axisLeftK.setDrawAxisLine(false);
         axisLeftK.setDrawLabels(true);
+        axisLeftK.setLabelCount(7, false);
+//        axisLeftK.resetAxisMaximum();
+//        axisLeftK.resetAxisMinimum();
         axisLeftK.setTextColor(getResources().getColor(R.color.minute_axis_text));
         axisLeftK.setGridColor(getResources().getColor(R.color.minute_grayLine));
         axisLeftK.setPosition(YAxis.YAxisLabelPosition.OUTSIDE_CHART);
@@ -152,16 +171,15 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     private void setData(ArrayList<KLineBean> data){
         mCandleStickChart.resetTracking();
 
-        ArrayList<CandleEntry> yVals1 = new ArrayList<CandleEntry>();
+        ArrayList<CandleEntry> yVals = new ArrayList<>();
 
-        final ArrayList<String> xVals = new ArrayList<>();
         ArrayList<CandleEntry> candleEntries = new ArrayList<>();
         int count =  data.size();
-        Log.d("setData",count+"");
 
+        mXVals.clear();
         for (int i = 0; i < count; i++) {
 
-            xVals.add(data.get(i).date + "");
+            mXVals.add(data.get(i).date + "");
             candleEntries.add(new CandleEntry(i, data.get(i).high, data.get(i).low, data.get(i).open, data.get(i).close));
 
             float high = data.get(i).high;
@@ -170,32 +188,34 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             float open = data.get(i).open;
             float close = data.get(i).close;
 
-            yVals1.add(new CandleEntry(
+            yVals.add(new CandleEntry(
                     i, high, low, open, close, getResources().getDrawable(R.drawable.star)
             ));
         }
 
-        CandleDataSet set1 = new CandleDataSet(yVals1, "Data Set");
+        CandleDataSet candleDataSet = new CandleDataSet(yVals, "Data Set");
 
-//        set1.setDrawIcons(false);
-        set1.setAxisDependency(AxisDependency.LEFT);
-//        set1.setColor(Color.rgb(80, 80, 80));
-        set1.setShadowColor(Color.DKGRAY);
-        set1.setShadowWidth(0.7f);
-        set1.setDecreasingColor(Color.RED);
-        set1.setDecreasingPaintStyle(Paint.Style.FILL);
-        set1.setIncreasingColor(Color.rgb(122, 242, 84));
-        set1.setIncreasingPaintStyle(Paint.Style.STROKE);
-        set1.setNeutralColor(Color.BLUE);
-        //set1.setHighlightLineWidth(1f);
+        candleDataSet.setValueTextColor(Color.WHITE);
+        candleDataSet.setAxisDependency(AxisDependency.LEFT);
+        candleDataSet.setShadowColor(Color.DKGRAY);
+        candleDataSet.setShadowWidth(0.7f);
+        candleDataSet.setDecreasingColor(Color.RED);
+        candleDataSet.setDecreasingPaintStyle(Paint.Style.FILL);
+        candleDataSet.setIncreasingColor(Color.rgb(122, 242, 84));
+        candleDataSet.setIncreasingPaintStyle(Paint.Style.STROKE);
+        candleDataSet.setNeutralColor(Color.WHITE);
+        candleDataSet.setHighlightLineWidth(1f);
+        candleDataSet.setHighlightEnabled(true);
+        candleDataSet.setHighLightColor(Color.YELLOW);
+        candleDataSet.setDrawValues(true);
 
-        mCandleStickChart.setData(new CandleData(set1));
+        mCandleStickChart.setData(new CandleData(candleDataSet));
         mCandleStickChart.setNoDataText(getResources().getString(R.string.chart_no_data));
+        mCandleStickChart.setVisibleXRange(10f,15f);
         mCandleStickChart.getXAxis().setValueFormatter(new IAxisValueFormatter() {
             @Override
             public String getFormattedValue(float value, AxisBase axis) {
-                String Millis = xVals.get((int) value);
-                Log.d("setdata", "value is " + value);
+                String Millis = mXVals.get((int) value);
 
                 return formatMillisToDate(Long.parseLong(Millis));
             }
@@ -219,7 +239,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             @Override
             public void onDataSuccessfully(String data) {
                 mHistory = data;
-                ToastUtil.show(getContext(),"获取评论数据成功");
+//                ToastUtil.show(getContext(),"获取评论数据成功");
                 Log.d("onDataSuccessfully",dataParse(mHistory).size()+"");
                 setData(dataParse(mHistory));
                 mCandleStickChart.notifyDataSetChanged();
