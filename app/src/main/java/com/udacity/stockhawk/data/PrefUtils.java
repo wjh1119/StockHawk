@@ -35,7 +35,7 @@ public final class PrefUtils {
         try{
             Set<String> stocks = prefs.getStringSet(stocksKey, new HashSet<String>());
         }catch(ClassCastException e){
-            return null;
+            return new HashSet<String>();
         }
 
         return prefs.getStringSet(stocksKey, new HashSet<String>());
@@ -45,10 +45,6 @@ public final class PrefUtils {
     private static void editStockPref(Context context, String symbol, Boolean add) {
         String key = context.getString(R.string.pref_stocks_key);
         Set<String> stocks = getStocks(context);
-
-        if (stocks == null){
-            stocks = new HashSet<>();
-        }
 
         if (add) {
             stocks.add(symbol);
@@ -68,6 +64,8 @@ public final class PrefUtils {
 
     public static void removeStock(Context context, String symbol) {
         editStockPref(context, symbol, false);
+        DeleteStockTask deleteStockTask = new DeleteStockTask(context);
+        deleteStockTask.execute(symbol);
     }
 
     public static String getDisplayMode(Context context) {

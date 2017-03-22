@@ -29,6 +29,7 @@
 
     <string name="error_no_network">No network connectivity! Will load stock cursor when the network is available.</string>
     <string name="error_no_stocks">No stocks added! Hit the floating action button to add one.</string>
+    <string name="error_no_stocks_for_widget">No stocks added!</string>
     <string name="error_repetitive_stock">this stock is already existed,please don\'t add it again</string>
 
     <string name="toast_stock_added_no_connectivity">Symbol %s added. Will refresh when network available.</string>
@@ -38,4 +39,5 @@
     <string name="title_widget_stock">StockHawk</string>
     <string name="title_activity_detail">kLine</string>
     <string name="chart_no_data">No Data</string>
+
 </resources>

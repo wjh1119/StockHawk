@@ -3,6 +3,7 @@ package com.udacity.stockhawk.widget;
 import android.annotation.TargetApi;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.Build;
 import android.widget.AdapterView;
@@ -12,6 +13,7 @@ import android.widget.RemoteViewsService;
 import com.udacity.stockhawk.R;
 import com.udacity.stockhawk.data.Contract;
 import com.udacity.stockhawk.data.PrefUtils;
+import com.udacity.stockhawk.ui.DetailActivity;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -123,10 +125,13 @@ public class DetailWidgetRemoteViewsService extends RemoteViewsService {
                     views.setTextColor(R.id.widget_price,getResources().getColor(R.color.white));
                 }
 
-//                final Intent fillInIntent = new Intent();
-//
-//                fillInIntent.setData(Contract.Quote.CONTENT_URI);
-//                views.setOnClickFillInIntent(R.id.widget_list_item, fillInIntent);
+                Uri contentUri = Contract.Quote.makeUriForStock(symbol);
+                Intent fillInIntent = new Intent(getBaseContext(), DetailActivity.class)
+                        .setData(contentUri);
+                startActivity(fillInIntent);
+
+                fillInIntent.setData(Contract.Quote.CONTENT_URI);
+                views.setOnClickFillInIntent(R.id.widget_list_item, fillInIntent);
                 return views;
             }
 

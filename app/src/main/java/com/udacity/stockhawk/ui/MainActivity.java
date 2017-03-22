@@ -15,6 +15,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -103,11 +104,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public void onRefresh() {
-        if (PrefUtils.getStocks(this) == null) {
-            swipeRefreshLayout.setRefreshing(false);
-            error.setText(getString(R.string.error_no_stocks));
-            error.setVisibility(View.VISIBLE);
-        }
+
         QuoteSyncJob.syncImmediately(this);
 
         if (!networkUp() && adapter.getItemCount() == 0) {
@@ -117,7 +114,11 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         } else if (!networkUp()) {
             swipeRefreshLayout.setRefreshing(false);
             Toast.makeText(this, R.string.toast_no_connectivity, Toast.LENGTH_LONG).show();
-        }else {
+        } else if (PrefUtils.getStocks(this).size() == 0) {
+            swipeRefreshLayout.setRefreshing(false);
+            error.setText(getString(R.string.error_no_stocks));
+            error.setVisibility(View.VISIBLE);
+        } else {
             error.setVisibility(View.GONE);
         }
     }
@@ -127,8 +128,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     void addStock(String symbol) {
-
-        if (PrefUtils.getStocks(this) != null && PrefUtils.getStocks(this).contains(symbol)) {
+        if (PrefUtils.getStocks(this).contains(symbol)) {
             Toast.makeText(this, R.string.error_repetitive_stock, Toast.LENGTH_LONG).show();
             return;
         }

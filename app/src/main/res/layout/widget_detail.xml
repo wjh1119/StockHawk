@@ -54,7 +54,7 @@
             android:gravity="center"
             android:fontFamily="sans-serif-condensed"
             android:textAppearance="?android:textAppearanceLarge"
-            android:text="@string/error_no_stocks"
+            android:text="@string/error_no_stocks_for_widget"
             android:textColor="@color/white_text"/>
         </FrameLayout>
 

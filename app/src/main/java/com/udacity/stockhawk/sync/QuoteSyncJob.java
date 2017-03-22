@@ -74,24 +74,18 @@ public final class QuoteSyncJob {
         try {
 
             Set<String> stockPref = PrefUtils.getStocks(context);
-            if (stockPref.size() == 0) {
-                context.getContentResolver()
-                        .delete(Contract.Quote.URI, null,null);
-                return;
-            }
             Set<String> stockCopy = new HashSet<>();
             stockCopy.addAll(stockPref);
             String[] stockArray = stockPref.toArray(new String[stockPref.size()]);
 
             Timber.d(stockCopy.toString());
 
-            Map<String, Stock> quotes = YahooFinance.get(stockArray);
-
-            if (quotes.size() == 0) {
-                // Stream was empty.  No point in parsing.
-                setStocksStatus(context, STOCKS_STATUS_SERVER_DOWN);
+            if (stockArray.length == 0) {
+                setStocksStatus(context,STOCKS_STATUS_SERVER_DOWN);
                 return;
             }
+
+            Map<String, Stock> quotes = YahooFinance.get(stockArray);
             Iterator<String> iterator = stockCopy.iterator();
 
             Timber.d(quotes.toString());

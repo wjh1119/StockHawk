@@ -22,7 +22,6 @@ import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
@@ -38,7 +37,6 @@ import com.udacity.stockhawk.ui.MainActivity;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Locale;
-import java.util.Set;
 
 import butterknife.BindView;
 
@@ -81,56 +79,13 @@ public class StockWidgetIntentService extends IntentService {
         int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(this,
                 StockWidgetProvider.class));
 
-        // Get stock's data from the ContentProvider
-        Set<String> stockPref = PrefUtils.getStocks(this);
-        String[] stockArray = stockPref.toArray(new String[stockPref.size()]);
+        Cursor allStock = getContentResolver().query(Contract.Quote.CONTENT_URI, STOCK_COLUMNS, null,
+                null, null);
 
-        String symbol;
-        float price;
-        float absoluteChange;
-        float percentageChange;
-
-        String absoluteChangeAfterFormat;
-        String percentageChangeAfterFormat;
-
-        if (stockArray[0] == null){
+        if (!allStock.moveToFirst()) {
+            allStock.close();
             isNoneData = true;
-            return;
-        }else{
-            Uri firstStockUri = Contract.Quote.makeUriForStock(
-                    stockArray[0]);
-
-            Cursor firstStock = getContentResolver().query(firstStockUri, STOCK_COLUMNS, null,
-                    null, null);
-
-            if (!firstStock.moveToFirst()) {
-                firstStock.close();
-                return;
-            }
-
-            // Extract the stock data from the Cursor
-            symbol = firstStock.getString(INDEX_SYMBOL);
-            price = firstStock.getFloat(INDEX_PRICE);
-            absoluteChange= firstStock.getFloat(INDEX_ABSOLUTE_CHANGE);
-            percentageChange = firstStock.getFloat(INDEX_PERCENTAGE_CHANGE);
-
-            final DecimalFormat dollarFormatWithPlus;
-            final DecimalFormat percentageFormat;
-
-            dollarFormatWithPlus = (DecimalFormat) NumberFormat.getCurrencyInstance(Locale.US);
-            dollarFormatWithPlus.setPositivePrefix("+$");
-            percentageFormat = (DecimalFormat) NumberFormat.getPercentInstance(Locale.getDefault());
-            percentageFormat.setMaximumFractionDigits(2);
-            percentageFormat.setMinimumFractionDigits(2);
-            percentageFormat.setPositivePrefix("+");
-
-            absoluteChangeAfterFormat = dollarFormatWithPlus.format(absoluteChange);
-            percentageChangeAfterFormat = percentageFormat.format(percentageChange / 100);
-
-            firstStock.close();
-
         }
-
 
         // Perform this loop procedure for each Today com.udacity.stockhawk.widget
         for (int appWidgetId : appWidgetIds) {
@@ -149,28 +104,47 @@ public class StockWidgetIntentService extends IntentService {
             RemoteViews views = new RemoteViews(getPackageName(), layoutId);
 
             // Add the data to the RemoteViews
-            if (isNoneData){
+            if (isNoneData) {
                 views.setTextViewText(R.id.widget_symbol, "None data");
-            }else{
+            } else {
+                // Extract the stock data from the Cursor
+                String symbol = allStock.getString(INDEX_SYMBOL);
+                float price = allStock.getFloat(INDEX_PRICE);
+                float absoluteChange = allStock.getFloat(INDEX_ABSOLUTE_CHANGE);
+                float percentageChange = allStock.getFloat(INDEX_PERCENTAGE_CHANGE);
+
+                final DecimalFormat dollarFormatWithPlus;
+                final DecimalFormat percentageFormat;
+
+                dollarFormatWithPlus = (DecimalFormat) NumberFormat.getCurrencyInstance(Locale.US);
+                dollarFormatWithPlus.setPositivePrefix("+$");
+                percentageFormat = (DecimalFormat) NumberFormat.getPercentInstance(Locale.getDefault());
+                percentageFormat.setMaximumFractionDigits(2);
+                percentageFormat.setMinimumFractionDigits(2);
+                percentageFormat.setPositivePrefix("+");
+
+                String absoluteChangeAfterFormat = dollarFormatWithPlus.format(absoluteChange);
+                String percentageChangeAfterFormat = percentageFormat.format(percentageChange / 100);
+
                 views.setTextViewText(R.id.widget_symbol, symbol);
                 views.setTextViewText(R.id.widget_price, Float.toString(price));
 
                 if (PrefUtils.getDisplayMode(this)
-                        .equals(getString(R.string.pref_display_mode_absolute_key))){
+                        .equals(getString(R.string.pref_display_mode_absolute_key))) {
                     views.setTextViewText(R.id.widget_change, absoluteChangeAfterFormat);
-                }else{
+                } else {
                     views.setTextViewText(R.id.widget_change, percentageChangeAfterFormat);
                 }
 
-                if (absoluteChange > 0){
-                    views.setTextColor(R.id.widget_change,getResources().getColor(R.color.material_green_700));
-                    views.setTextColor(R.id.widget_price,getResources().getColor(R.color.material_green_700));
-                }else if(absoluteChange < 0){
-                    views.setTextColor(R.id.widget_change,getResources().getColor(R.color.material_red_700));
-                    views.setTextColor(R.id.widget_price,getResources().getColor(R.color.material_red_700));
-                }else{
-                    views.setTextColor(R.id.widget_change,getResources().getColor(R.color.white));
-                    views.setTextColor(R.id.widget_price,getResources().getColor(R.color.white));
+                if (absoluteChange > 0) {
+                    views.setTextColor(R.id.widget_change, getResources().getColor(R.color.material_green_700));
+                    views.setTextColor(R.id.widget_price, getResources().getColor(R.color.material_green_700));
+                } else if (absoluteChange < 0) {
+                    views.setTextColor(R.id.widget_change, getResources().getColor(R.color.material_red_700));
+                    views.setTextColor(R.id.widget_price, getResources().getColor(R.color.material_red_700));
+                } else {
+                    views.setTextColor(R.id.widget_change, getResources().getColor(R.color.white));
+                    views.setTextColor(R.id.widget_price, getResources().getColor(R.color.white));
                 }
             }
 
@@ -182,6 +156,8 @@ public class StockWidgetIntentService extends IntentService {
             // Tell the AppWidgetManager to perform an update on the current app com.udacity.stockhawk.widget
             appWidgetManager.updateAppWidget(appWidgetId, views);
         }
+
+        allStock.close();
     }
 
     private int getWidgetWidth(AppWidgetManager appWidgetManager, int appWidgetId) {

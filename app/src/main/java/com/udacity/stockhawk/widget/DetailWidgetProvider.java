@@ -14,6 +14,7 @@ import android.widget.RemoteViews;
 
 import com.udacity.stockhawk.R;
 import com.udacity.stockhawk.sync.QuoteSyncJob;
+import com.udacity.stockhawk.ui.DetailActivity;
 import com.udacity.stockhawk.ui.MainActivity;
 
 /**
@@ -40,7 +41,7 @@ public class DetailWidgetProvider extends AppWidgetProvider {
             boolean useDetailActivity = context.getResources()
                     .getBoolean(R.bool.use_detail_activity);
             Intent clickIntentTemplate = useDetailActivity
-                    ? new Intent(context, MainActivity.class)
+                    ? new Intent(context, DetailActivity.class)
                     : new Intent(context, MainActivity.class);
             PendingIntent clickPendingIntentTemplate = TaskStackBuilder.create(context)
                     .addNextIntentWithParentStack(clickIntentTemplate)
