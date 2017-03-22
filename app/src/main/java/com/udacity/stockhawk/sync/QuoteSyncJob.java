@@ -74,18 +74,24 @@ public final class QuoteSyncJob {
         try {
 
             Set<String> stockPref = PrefUtils.getStocks(context);
+            if (stockPref.size() == 0) {
+                context.getContentResolver()
+                        .delete(Contract.Quote.URI, null,null);
+                return;
+            }
             Set<String> stockCopy = new HashSet<>();
             stockCopy.addAll(stockPref);
             String[] stockArray = stockPref.toArray(new String[stockPref.size()]);
 
             Timber.d(stockCopy.toString());
 
-            if (stockArray.length == 0) {
-                setStocksStatus(context,STOCKS_STATUS_SERVER_DOWN);
+            Map<String, Stock> quotes = YahooFinance.get(stockArray);
+
+            if (quotes.size() == 0) {
+                // Stream was empty.  No point in parsing.
+                setStocksStatus(context, STOCKS_STATUS_SERVER_DOWN);
                 return;
             }
-
-            Map<String, Stock> quotes = YahooFinance.get(stockArray);
             Iterator<String> iterator = stockCopy.iterator();
 
             Timber.d(quotes.toString());
@@ -107,16 +113,7 @@ public final class QuoteSyncJob {
                 // The request will hang forever X_x
                 List<HistoricalQuote> history = stock.getHistory(from, to, Interval.DAILY);
 
-                StringBuilder historyBuilder = new StringBuilder();
-
-                for (HistoricalQuote it : history) {
-                    historyBuilder.append(it.getDate().getTimeInMillis());
-                    historyBuilder.append(", ");
-                    historyBuilder.append(it.getClose());
-                    historyBuilder.append("\n");
-                }
-
-                JSONObject historyJson = historicalQuoteListtoJson(history);
+                JSONObject historyJson = historicalQuoteListtoJson(context,history);
                 Log.d("QuoteSyncJob",historyJson.toString());
 
                 ContentValues quoteCV = new ContentValues();
@@ -125,8 +122,6 @@ public final class QuoteSyncJob {
                 quoteCV.put(Contract.Quote.COLUMN_PERCENTAGE_CHANGE, percentChange);
                 quoteCV.put(Contract.Quote.COLUMN_ABSOLUTE_CHANGE, change);
 
-
-//                quoteCV.put(Contract.Quote.COLUMN_HISTORY, historyBuilder.toString());
                 quoteCV.put(Contract.Quote.COLUMN_HISTORY, historyJson.toString());
 
                 quoteCVs.add(quoteCV);
@@ -144,10 +139,11 @@ public final class QuoteSyncJob {
 
         } catch (IOException exception) {
             Timber.e(exception, "Error fetching stock quotes");
+            setStocksStatus(context, STOCKS_STATUS_SERVER_DOWN);
         }
     }
 
-    public static JSONObject historicalQuoteListtoJson(List<HistoricalQuote> history){
+    public static JSONObject historicalQuoteListtoJson(Context context, List<HistoricalQuote> history){
         JSONObject historyJson = new JSONObject();
         JSONArray jsonMembers = new JSONArray();
         try{
@@ -164,6 +160,8 @@ public final class QuoteSyncJob {
             historyJson.put("history",jsonMembers);
         } catch (JSONException exception) {
             Timber.e(exception, "Error fetching stock quotes");
+            exception.printStackTrace();
+            setStocksStatus(context, STOCKS_STATUS_SERVER_INVALID);
         }
 
         return historyJson;

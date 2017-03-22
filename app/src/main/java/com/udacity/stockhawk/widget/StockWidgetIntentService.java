@@ -48,10 +48,10 @@ import butterknife.BindView;
 public class StockWidgetIntentService extends IntentService {
 
     @BindView(R.id.widget_symbol)
-    TextView symbol;
+    TextView widgetSymbol;
 
     @BindView(R.id.widget_price)
-    TextView price;
+    TextView widgetPrice;
 
     @BindView(R.id.widget_change)
     TextView change;
@@ -68,6 +68,8 @@ public class StockWidgetIntentService extends IntentService {
     private static final int INDEX_ABSOLUTE_CHANGE = 2;
     private static final int INDEX_PERCENTAGE_CHANGE = 3;
 
+    private boolean isNoneData = false;
+
     public StockWidgetIntentService() {
         super(StockWidgetIntentService.class.getSimpleName());
     }
@@ -82,36 +84,53 @@ public class StockWidgetIntentService extends IntentService {
         // Get stock's data from the ContentProvider
         Set<String> stockPref = PrefUtils.getStocks(this);
         String[] stockArray = stockPref.toArray(new String[stockPref.size()]);
-        Uri firstStockUri = Contract.Quote.makeUriForStock(
-                stockArray[0]);
-        Cursor firstStock = getContentResolver().query(firstStockUri, STOCK_COLUMNS, null,
-                null, null);
 
-        if (!firstStock.moveToFirst()) {
-            firstStock.close();
+        String symbol;
+        float price;
+        float absoluteChange;
+        float percentageChange;
+
+        String absoluteChangeAfterFormat;
+        String percentageChangeAfterFormat;
+
+        if (stockArray[0] == null){
+            isNoneData = true;
             return;
+        }else{
+            Uri firstStockUri = Contract.Quote.makeUriForStock(
+                    stockArray[0]);
+
+            Cursor firstStock = getContentResolver().query(firstStockUri, STOCK_COLUMNS, null,
+                    null, null);
+
+            if (!firstStock.moveToFirst()) {
+                firstStock.close();
+                return;
+            }
+
+            // Extract the stock data from the Cursor
+            symbol = firstStock.getString(INDEX_SYMBOL);
+            price = firstStock.getFloat(INDEX_PRICE);
+            absoluteChange= firstStock.getFloat(INDEX_ABSOLUTE_CHANGE);
+            percentageChange = firstStock.getFloat(INDEX_PERCENTAGE_CHANGE);
+
+            final DecimalFormat dollarFormatWithPlus;
+            final DecimalFormat percentageFormat;
+
+            dollarFormatWithPlus = (DecimalFormat) NumberFormat.getCurrencyInstance(Locale.US);
+            dollarFormatWithPlus.setPositivePrefix("+$");
+            percentageFormat = (DecimalFormat) NumberFormat.getPercentInstance(Locale.getDefault());
+            percentageFormat.setMaximumFractionDigits(2);
+            percentageFormat.setMinimumFractionDigits(2);
+            percentageFormat.setPositivePrefix("+");
+
+            absoluteChangeAfterFormat = dollarFormatWithPlus.format(absoluteChange);
+            percentageChangeAfterFormat = percentageFormat.format(percentageChange / 100);
+
+            firstStock.close();
+
         }
 
-        // Extract the stock data from the Cursor
-        String symbol = firstStock.getString(INDEX_SYMBOL);
-        float price = firstStock.getFloat(INDEX_PRICE);
-        float absoluteChange= firstStock.getFloat(INDEX_ABSOLUTE_CHANGE);
-        float percentageChange = firstStock.getFloat(INDEX_PERCENTAGE_CHANGE);
-
-        final DecimalFormat dollarFormatWithPlus;
-        final DecimalFormat percentageFormat;
-
-        dollarFormatWithPlus = (DecimalFormat) NumberFormat.getCurrencyInstance(Locale.US);
-        dollarFormatWithPlus.setPositivePrefix("+$");
-        percentageFormat = (DecimalFormat) NumberFormat.getPercentInstance(Locale.getDefault());
-        percentageFormat.setMaximumFractionDigits(2);
-        percentageFormat.setMinimumFractionDigits(2);
-        percentageFormat.setPositivePrefix("+");
-
-        String absoluteChangeAfterFormat = dollarFormatWithPlus.format(absoluteChange);
-        String percentageChangeAfterFormat = percentageFormat.format(percentageChange / 100);
-
-        firstStock.close();
 
         // Perform this loop procedure for each Today com.udacity.stockhawk.widget
         for (int appWidgetId : appWidgetIds) {
@@ -130,26 +149,29 @@ public class StockWidgetIntentService extends IntentService {
             RemoteViews views = new RemoteViews(getPackageName(), layoutId);
 
             // Add the data to the RemoteViews
-
-            views.setTextViewText(R.id.widget_symbol, symbol);
-            views.setTextViewText(R.id.widget_price, Float.toString(price));
-
-            if (PrefUtils.getDisplayMode(this)
-                    .equals(getString(R.string.pref_display_mode_absolute_key))){
-                views.setTextViewText(R.id.widget_change, absoluteChangeAfterFormat);
+            if (isNoneData){
+                views.setTextViewText(R.id.widget_symbol, "None data");
             }else{
-                views.setTextViewText(R.id.widget_change, percentageChangeAfterFormat);
-            }
+                views.setTextViewText(R.id.widget_symbol, symbol);
+                views.setTextViewText(R.id.widget_price, Float.toString(price));
 
-            if (absoluteChange > 0){
-                views.setTextColor(R.id.widget_change,getResources().getColor(R.color.material_green_700));
-                views.setTextColor(R.id.widget_price,getResources().getColor(R.color.material_green_700));
-            }else if(absoluteChange < 0){
-                views.setTextColor(R.id.widget_change,getResources().getColor(R.color.material_red_700));
-                views.setTextColor(R.id.widget_price,getResources().getColor(R.color.material_red_700));
-            }else{
-                views.setTextColor(R.id.widget_change,getResources().getColor(R.color.white));
-                views.setTextColor(R.id.widget_price,getResources().getColor(R.color.white));
+                if (PrefUtils.getDisplayMode(this)
+                        .equals(getString(R.string.pref_display_mode_absolute_key))){
+                    views.setTextViewText(R.id.widget_change, absoluteChangeAfterFormat);
+                }else{
+                    views.setTextViewText(R.id.widget_change, percentageChangeAfterFormat);
+                }
+
+                if (absoluteChange > 0){
+                    views.setTextColor(R.id.widget_change,getResources().getColor(R.color.material_green_700));
+                    views.setTextColor(R.id.widget_price,getResources().getColor(R.color.material_green_700));
+                }else if(absoluteChange < 0){
+                    views.setTextColor(R.id.widget_change,getResources().getColor(R.color.material_red_700));
+                    views.setTextColor(R.id.widget_price,getResources().getColor(R.color.material_red_700));
+                }else{
+                    views.setTextColor(R.id.widget_change,getResources().getColor(R.color.white));
+                    views.setTextColor(R.id.widget_price,getResources().getColor(R.color.white));
+                }
             }
 
             // Create an Intent to launch MainActivity
