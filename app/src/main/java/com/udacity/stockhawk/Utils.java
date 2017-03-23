@@ -1,8 +1,12 @@
 package com.udacity.stockhawk;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.udacity.stockhawk.bean.KLineBean;
+import com.udacity.stockhawk.sync.QuoteSyncJob;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -56,5 +60,17 @@ public class Utils {
         }
 
         return data;
+    }
+
+    @SuppressWarnings("ResourceType")
+    static public @QuoteSyncJob.StocksStatus
+    int getStocksStatus(Context c){
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(c);
+        return sp.getInt(c.getString(R.string.pref_stocks_status_key), QuoteSyncJob.STOCKS_STATUS_UNKNOWN);
+    }
+
+    static public long getLastSyncTime(Context c){
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(c);
+        return sp.getLong(c.getString(R.string.pref_current_time_key), 0);
     }
 }

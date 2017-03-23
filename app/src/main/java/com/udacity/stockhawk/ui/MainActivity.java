@@ -2,6 +2,7 @@ package com.udacity.stockhawk.ui;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -23,6 +24,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.udacity.stockhawk.R;
+import com.udacity.stockhawk.ToastUtil;
+import com.udacity.stockhawk.Utils;
 import com.udacity.stockhawk.data.Contract;
 import com.udacity.stockhawk.data.PrefUtils;
 import com.udacity.stockhawk.sync.QuoteSyncJob;
@@ -33,7 +36,8 @@ import timber.log.Timber;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>,
         SwipeRefreshLayout.OnRefreshListener,
-        StockAdapter.StockAdapterOnClickHandler {
+        StockAdapter.StockAdapterOnClickHandler,
+        SharedPreferences.OnSharedPreferenceChangeListener{
 
     private static final int STOCK_LOADER = 0;
     @SuppressWarnings("WeakerAccess")
@@ -42,9 +46,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @SuppressWarnings("WeakerAccess")
     @BindView(R.id.swipe_refresh)
     SwipeRefreshLayout swipeRefreshLayout;
-    @SuppressWarnings("WeakerAccess")
-    @BindView(R.id.recycler_empty)
-    TextView emptyView;
     @SuppressWarnings("WeakerAccess")
     @BindView(R.id.error)
     TextView error;
@@ -66,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        adapter = new StockAdapter(this, this, emptyView);
+        adapter = new StockAdapter(this, this, error);
         stockRecyclerView.setAdapter(adapter);
         stockRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
@@ -94,11 +95,20 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - Utils.getLastSyncTime(this) > QuoteSyncJob.getPeriod()){
+            ToastUtil.show(this,getString(R.string.error_not_newest));
+        }
+    }
+
     private boolean networkUp() {
         ConnectivityManager cm =
                 (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = cm.getActiveNetworkInfo();
-//        updateEmptyView();
+
         return networkInfo != null && networkInfo.isConnectedOrConnecting();
     }
 
@@ -106,6 +116,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     public void onRefresh() {
 
         QuoteSyncJob.syncImmediately(this);
+
+        Log.d("onRefresh",PrefUtils.getStocks(this).size()+"");
 
         if (!networkUp() && adapter.getItemCount() == 0) {
             swipeRefreshLayout.setRefreshing(false);
@@ -209,15 +221,41 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         use to determine why they aren't seeing weather.
      */
     private void updateEmptyView() {
+        @QuoteSyncJob.StocksStatus int stocksStatus = Utils.getStocksStatus(this);
         if ( adapter.getItemCount() == 0 ) {
-            if ( null != emptyView) {
+            if ( null != error) {
                 // if cursor is empty, why? do we have an invalid location
                 int message = R.string.error_no_stocks;
-                if (!networkUp() ) {
-                    message = R.string.error_no_network;
+
+                Log.d("updateEmptyView","stocksStatus is " + stocksStatus);
+                switch (stocksStatus) {
+                    case QuoteSyncJob.STOCKS_STATUS_SERVER_DOWN:
+                        message = R.string.error_server_down;
+                        break;
+                    case QuoteSyncJob.STOCKS_STATUS_SERVER_INVALID:
+                        message = R.string.error_server_invalid;
+                        break;
+                    case QuoteSyncJob.STOCKS_STATUS_CLIENT_INVALiD:
+//                        message = R.string.error_invalid_stock;
+                        ToastUtil.show(this,getResources().getString(R.string.error_invalid_stock));
+                        break;
+                    default:
+                        if (!networkUp()) {
+                            message = R.string.error_no_network;
+                        }
                 }
-                emptyView.setText(message);
+                Log.d("QuoteSyncJob","message is " + message);
+                error.setText(message);
             }
+        }else if(stocksStatus == QuoteSyncJob.STOCKS_STATUS_CLIENT_INVALiD){
+            ToastUtil.show(this,getResources().getString(R.string.error_invalid_stock));
+        }
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (key.equals(getString(R.string.pref_stocks_status_key))) {
+            updateEmptyView();
         }
     }
 }

@@ -50,7 +50,8 @@ public final class QuoteSyncJob {
 
 
     @Retention(RetentionPolicy.SOURCE)
-    @IntDef({STOCKS_STATUS_OK, STOCKS_STATUS_SERVER_DOWN, STOCKS_STATUS_SERVER_INVALID,  STOCKS_STATUS_UNKNOWN})
+    @IntDef({STOCKS_STATUS_OK, STOCKS_STATUS_SERVER_DOWN, STOCKS_STATUS_SERVER_INVALID,
+            STOCKS_STATUS_UNKNOWN, STOCKS_STATUS_CLIENT_INVALiD})
     public @interface StocksStatus {}
 
     public static final int STOCKS_STATUS_OK = 0;
@@ -59,6 +60,8 @@ public final class QuoteSyncJob {
             STOCKS_STATUS_SERVER_INVALID = 2;
     public static final int
             STOCKS_STATUS_UNKNOWN = 3;
+    public static final int
+            STOCKS_STATUS_CLIENT_INVALiD = 4;
 
     private QuoteSyncJob() {
     }
@@ -71,6 +74,8 @@ public final class QuoteSyncJob {
         Calendar to = Calendar.getInstance();
         from.add(Calendar.YEAR, -YEARS_OF_HISTORY);
 
+        boolean clientStockInvalid = false;
+
         try {
 
             Set<String> stockPref = PrefUtils.getStocks(context);
@@ -81,7 +86,6 @@ public final class QuoteSyncJob {
             Timber.d(stockCopy.toString());
 
             if (stockArray.length == 0) {
-                setStocksStatus(context,STOCKS_STATUS_SERVER_DOWN);
                 return;
             }
 
@@ -94,9 +98,13 @@ public final class QuoteSyncJob {
 
             while (iterator.hasNext()) {
                 String symbol = iterator.next();
-
-
                 Stock stock = quotes.get(symbol);
+
+                if (stock.getCurrency() == null){
+                    clientStockInvalid = true;
+                    PrefUtils.removeStock(context,symbol);
+                    break;
+                }
                 StockQuote quote = stock.getQuote();
 
                 float price = quote.getPrice().floatValue();
@@ -107,7 +115,7 @@ public final class QuoteSyncJob {
                 // The request will hang forever X_x
                 List<HistoricalQuote> history = stock.getHistory(from, to, Interval.DAILY);
 
-                JSONObject historyJson = historicalQuoteListtoJson(context,history);
+                JSONObject historyJson = historicalQuoteListToJson(context,history);
                 Log.d("QuoteSyncJob",historyJson.toString());
 
                 ContentValues quoteCV = new ContentValues();
@@ -127,6 +135,15 @@ public final class QuoteSyncJob {
                             Contract.Quote.URI,
                             quoteCVs.toArray(new ContentValues[quoteCVs.size()]));
 
+            if (clientStockInvalid){
+                setStocksStatus(context, STOCKS_STATUS_CLIENT_INVALiD);
+            }
+            else {
+                setStocksStatus(context, STOCKS_STATUS_OK);
+                setCurrentTime(context);
+            }
+
+
             Intent dataUpdatedIntent = new Intent(ACTION_DATA_UPDATED)
                     .setPackage(context.getPackageName());
             context.sendBroadcast(dataUpdatedIntent);
@@ -137,7 +154,7 @@ public final class QuoteSyncJob {
         }
     }
 
-    public static JSONObject historicalQuoteListtoJson(Context context, List<HistoricalQuote> history){
+    public static JSONObject historicalQuoteListToJson(Context context, List<HistoricalQuote> history){
         JSONObject historyJson = new JSONObject();
         JSONArray jsonMembers = new JSONArray();
         try{
@@ -222,5 +239,17 @@ public final class QuoteSyncJob {
         SharedPreferences.Editor spe = sp.edit();
         spe.putInt(c.getString(R.string.pref_stocks_status_key), stocksStatus);
         spe.commit();
+    }
+
+    static private void setCurrentTime(Context c){
+        Long currentMillis = System.currentTimeMillis();
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(c);
+        SharedPreferences.Editor spe = sp.edit();
+        spe.putLong(c.getString(R.string.pref_current_time_key), currentMillis);
+        spe.commit();
+    }
+
+    static public int getPeriod(){
+        return PERIOD;
     }
 }

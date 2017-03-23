@@ -5,7 +5,9 @@
 
     <string name="pref_stocks_key">stocks</string>
 
-    <string name="pref_stocks_status_key">stocks</string>
+    <string name="pref_stocks_status_key">stocks-status</string>
+
+    <string name="pref_current_time_key">current-time</string>
 
     <string name="pref_display_mode_key">displayMode</string>
     <string name="pref_display_mode_default">@string/pref_display_mode_percentage_key</string>
@@ -31,6 +33,10 @@
     <string name="error_no_stocks">No stocks added! Hit the floating action button to add one.</string>
     <string name="error_no_stocks_for_widget">No stocks added!</string>
     <string name="error_repetitive_stock">this stock is already existed,please don\'t add it again</string>
+    <string name="error_server_down">No stock information available. The server is not returning data.</string>
+    <string name="error_server_invalid">No stock information available. The server is not returning valid data. Please check for an updated version of Sunshine.</string>
+    <string name="error_invalid_stock">No stock information available. The stock in settings is not recognized by the stock server.</string>
+    <string name="error_not_newest">The prices of stocks are not newest, please refresh</string>
 
     <string name="toast_stock_added_no_connectivity">Symbol %s added. Will refresh when network available.</string>
     <string name="toast_no_connectivity">Will refresh when network available.</string>
@@ -39,5 +45,6 @@
     <string name="title_widget_stock">StockHawk</string>
     <string name="title_activity_detail">kLine</string>
     <string name="chart_no_data">No Data</string>
+
 
 </resources>

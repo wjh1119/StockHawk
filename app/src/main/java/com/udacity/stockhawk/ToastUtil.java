@@ -25,7 +25,7 @@ public final class ToastUtil {
 
     private static void toast(final Context context, final String msg) {
         if (mToast == null) {
-            mToast = Toast.makeText(context, msg, Toast.LENGTH_SHORT);
+            mToast = Toast.makeText(context, msg, Toast.LENGTH_LONG);
         } else {
             mToast.setText(msg);
             mToast.setDuration(Toast.LENGTH_SHORT);
