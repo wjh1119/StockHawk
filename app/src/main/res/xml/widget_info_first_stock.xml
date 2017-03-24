@@ -22,4 +22,5 @@
     android:minWidth="@dimen/widget_stock_default_width"
     android:resizeMode="horizontal"
     android:updatePeriodMillis="0"
+    android:previewImage="@drawable/widget_preview_first_stock"
     tools:ignore="UnusedAttribute" />
