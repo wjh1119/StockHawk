@@ -227,7 +227,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 // if cursor is empty, why? do we have an invalid location
                 int message = R.string.error_no_stocks;
 
-                Log.d("updateEmptyView","stocksStatus is " + stocksStatus);
                 switch (stocksStatus) {
                     case QuoteSyncJob.STOCKS_STATUS_SERVER_DOWN:
                         message = R.string.error_server_down;
@@ -244,7 +243,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                             message = R.string.error_no_network;
                         }
                 }
-                Log.d("QuoteSyncJob","message is " + message);
                 error.setText(message);
             }
         }else if(stocksStatus == QuoteSyncJob.STOCKS_STATUS_CLIENT_INVALiD){

@@ -69,9 +69,14 @@ class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHolder> {
 
         cursor.moveToPosition(position);
 
+        String symbol = cursor.getString(Contract.Quote.POSITION_SYMBOL);
+        holder.symbol.setText(symbol);
+        holder.symbol.setContentDescription(context.getResources().getString(R.string.a11y_symbol,symbol));
 
-        holder.symbol.setText(cursor.getString(Contract.Quote.POSITION_SYMBOL));
-        holder.price.setText(dollarFormat.format(cursor.getFloat(Contract.Quote.POSITION_PRICE)));
+        float price = cursor.getFloat((Contract.Quote.POSITION_PRICE));
+        holder.price.setText(dollarFormat.format(price));
+        holder.price.setContentDescription(
+                context.getResources().getString(R.string.a11y_price,Float.toString(price)));
 
 
         float rawAbsoluteChange = cursor.getFloat(Contract.Quote.POSITION_ABSOLUTE_CHANGE);
@@ -81,18 +86,18 @@ class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHolder> {
             holder.change.setBackgroundResource(R.drawable.percent_change_pill_green);
         } else if(rawAbsoluteChange < 0){
             holder.change.setBackgroundResource(R.drawable.percent_change_pill_red);
-        } else{
-//            holder.change.setBackgroundResource();
         }
 
-        String change = dollarFormatWithPlus.format(rawAbsoluteChange);
+        String absolute = dollarFormatWithPlus.format(rawAbsoluteChange);
         String percentage = percentageFormat.format(percentageChange / 100);
 
         if (PrefUtils.getDisplayMode(context)
                 .equals(context.getString(R.string.pref_display_mode_absolute_key))) {
-            holder.change.setText(change);
+            holder.change.setText(absolute);
+            holder.change.setContentDescription(context.getString(R.string.a11y_change,absolute));
         } else {
             holder.change.setText(percentage);
+            holder.change.setContentDescription(context.getString(R.string.a11y_change,percentage));
         }
 
 

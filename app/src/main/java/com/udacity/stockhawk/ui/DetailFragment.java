@@ -9,7 +9,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -126,9 +125,10 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         mCandleStickChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
             @Override
             public void onValueSelected(Entry e, Highlight h) {
-                ToastUtil.show(getContext(),"date: "+
-                        formatMillisToDate(Long.parseLong(mXVals.get((int) h.getX())))+
-                        "\nprice: "+h.getY());
+                String dateAndPrice = getContext().getString(R.string.toast_detail_symbol_and_price,
+                        formatMillisToDate(Long.parseLong(mXVals.get((int) h.getX()))),
+                        Float.toString(h.getY()));
+                ToastUtil.show(getContext(),dateAndPrice);
                 mCandleStickChart.highlightValues(new Highlight[]{h});
             }
 
@@ -239,15 +239,14 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             @Override
             public void onDataSuccessfully(String data) {
                 mHistory = data;
-//                ToastUtil.show(getContext(),"获取评论数据成功");
-                Log.d("onDataSuccessfully",dataParse(mHistory).size()+"");
                 setData(dataParse(mHistory));
                 mCandleStickChart.notifyDataSetChanged();
             }
 
             @Override
             public void onDataFailed() {
-                ToastUtil.show(getContext(),"获取评论数据失败");
+                ToastUtil.show(getContext(),
+                        getString(R.string.error_no_detail));
             }
         });
         fetchHistoryTask.execute(mCursor);

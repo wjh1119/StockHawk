@@ -1,41 +1,56 @@
-<resources>
-    <string name="app_name">Stock Hawk</string>
+<resources xmlns:xliff="http://schemas.android.com/apk/res-auto">
+    <string name="app_name">股票雄鹰</string>
 
     <string name="pref_stocks_initialized_key" translatable="false">initialized</string>
 
-    <string name="pref_stocks_key">stocks</string>
+    <string name="pref_stocks_key" translatable="false">stocks</string>
 
-    <string name="pref_stocks_status_key">stocks</string>
+    <string name="pref_stocks_status_key" translatable="false">stocks-status</string>
 
-    <string name="pref_display_mode_key">displayMode</string>
-    <string name="pref_display_mode_default">@string/pref_display_mode_percentage_key</string>
+    <string name="pref_current_time_key" translatable="false">current-time</string>
 
-    <string name="pref_display_mode_absolute_key">absolute</string>
-    <string name="pref_display_mode_percentage_key">percentage</string>
+    <string name="pref_display_mode_key" translatable="false">displayMode</string>
+    <string name="pref_display_mode_default" translatable="false">@string/pref_display_mode_percentage_key</string>
 
-    <string name="default_stocks_yahoo">YHOO</string>
-    <string name="default_stocks_apple">AAPL</string>
-    <string name="default_stocks_microsoft">MSFT</string>
-    <string name="default_stocks_facebook">FB</string>
+    <string name="pref_display_mode_absolute_key" translatable="false">absolute</string>
+    <string name="pref_display_mode_percentage_key" translatable="false">percentage</string>
+
+    <string name="default_stocks_yahoo" translatable="false">YHOO</string>
+    <string name="default_stocks_apple" translatable="false">AAPL</string>
+    <string name="default_stocks_microsoft" translatable="false">MSFT</string>
+    <string name="default_stocks_facebook" translatable="false">FB</string>
 
 
-    <string name="action_change_units">@string/pref_display_mode_key</string>
+    <string name="action_change_units" translatable="false">@string/pref_display_mode_key</string>
 
 
-    <string name="dialog_title">Add Stock</string>
-    <string name="dialog_hint">Symbol (e.g. GOOG)</string>
-    <string name="dialog_cancel">Cancel</string>
-    <string name="dialog_add">Add</string>
+    <string name="dialog_title">添加股票</string>
+    <string name="dialog_hint">代号 (e.g. GOOG)</string>
+    <string name="dialog_cancel">取消</string>
+    <string name="dialog_add">添加</string>
 
-    <string name="error_no_network">No network connectivity! Will load stock cursor when the network is available.</string>
-    <string name="error_no_stocks">No stocks added! Hit the floating action button to add one.</string>
-    <string name="error_repetitive_stock">this stock is already existed,please don\'t add it again</string>
+    <string name="error_no_network">无网络连接</string>
+    <string name="error_no_stocks">无添加股票，请点击添加按钮添加股票</string>
+    <string name="error_no_stocks_for_widget">无添加股票</string>
+    <string name="error_repetitive_stock">该股票已存在，请勿重复添加</string>
+    <string name="error_server_down">无法获得股票信息，服务器未返回信息</string>
+    <string name="error_server_invalid">无法获得股票信息，服务器返回错误信息</string>
+    <string name="error_invalid_stock">无法获得股票信息，服务器无法识别该股票</string>
+    <string name="error_not_newest">请刷新获取最新股价</string>
 
-    <string name="toast_stock_added_no_connectivity">Symbol %s added. Will refresh when network available.</string>
-    <string name="toast_no_connectivity">Will refresh when network available.</string>
-    <string name="recycler_empty_text">No Stock Information Available</string>
+    <string name="toast_stock_added_no_connectivity">添加股票 <xliff:g id="symbol">%s</xliff:g>. 当有网络时刷新</string>
+    <string name="toast_no_connectivity">当有网络时刷新</string>
+    <string name="recycler_empty_text">无股票信息</string>
 
-    <string name="title_widget_stock">StockHawk</string>
-    <string name="title_activity_detail">kLine</string>
-    <string name="chart_no_data">No Data</string>
+    <string name="title_widget_stock">股票雄鹰</string>
+    <string name="title_activity_detail">k线</string>
+    <string name="chart_no_data">无数据</string>
+    <string name="error_no_detail">获取k线数据失败</string>
+    <string name="toast_detail_symbol_and_price">日期: <xliff:g id="date">%1$s</xliff:g>
+        \n价格: <xliff:g id="price">%2$s</xliff:g></string>
+
+    <!-- A11y -->
+    <string name="a11y_symbol">股票代号: <xliff:g id="sybmol">%1$s</xliff:g></string>
+    <string name="a11y_price">当前价格: <xliff:g id="price">%1$s</xliff:g></string>
+    <string name="a11y_change">价格变化: <xliff:g id="change">%1$s</xliff:g></string>
 </resources>
