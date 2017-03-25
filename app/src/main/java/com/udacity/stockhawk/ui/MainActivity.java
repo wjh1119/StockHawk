@@ -240,7 +240,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                         message = R.string.error_server_invalid;
                         break;
                     case STOCKS_STATUS_CLIENT_INVALiD:
-//                        message = R.string.error_invalid_stock;
                         ToastUtil.show(this,getResources().getString(R.string.error_invalid_stock));
                         Utils.setStocksStatus(MainActivity.this, STOCKS_STATUS_UNKNOWN);
                         break;
