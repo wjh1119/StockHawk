@@ -35,6 +35,9 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import timber.log.Timber;
 
+import static com.udacity.stockhawk.sync.QuoteSyncJob.STOCKS_STATUS_CLIENT_INVALiD;
+import static com.udacity.stockhawk.sync.QuoteSyncJob.STOCKS_STATUS_UNKNOWN;
+
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>,
         SwipeRefreshLayout.OnRefreshListener,
         StockAdapter.StockAdapterOnClickHandler,
@@ -236,9 +239,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                     case QuoteSyncJob.STOCKS_STATUS_SERVER_INVALID:
                         message = R.string.error_server_invalid;
                         break;
-                    case QuoteSyncJob.STOCKS_STATUS_CLIENT_INVALiD:
+                    case STOCKS_STATUS_CLIENT_INVALiD:
 //                        message = R.string.error_invalid_stock;
                         ToastUtil.show(this,getResources().getString(R.string.error_invalid_stock));
+                        Utils.setStocksStatus(MainActivity.this, STOCKS_STATUS_UNKNOWN);
                         break;
                     default:
                         if (!networkUp()) {
@@ -247,8 +251,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 }
                 error.setText(message);
             }
-        }else if(stocksStatus == QuoteSyncJob.STOCKS_STATUS_CLIENT_INVALiD){
+        }else if(stocksStatus == STOCKS_STATUS_CLIENT_INVALiD){
             ToastUtil.show(this,getResources().getString(R.string.error_invalid_stock));
+            Utils.setStocksStatus(MainActivity.this, STOCKS_STATUS_UNKNOWN);
         }
     }
 
