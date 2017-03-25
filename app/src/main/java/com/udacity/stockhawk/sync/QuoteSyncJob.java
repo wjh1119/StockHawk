@@ -40,8 +40,6 @@ import yahoofinance.histquotes.HistoricalQuote;
 import yahoofinance.histquotes.Interval;
 import yahoofinance.quotes.stock.StockQuote;
 
-import static com.udacity.stockhawk.Utils.setStocksStatus;
-
 public final class QuoteSyncJob {
 
     private static final int ONE_OFF_ID = 2;
@@ -236,7 +234,18 @@ public final class QuoteSyncJob {
         }
     }
 
-
+    /**
+     * Sets the stock status into shared preference.  This function should not be called from
+     * the UI thread because it uses commit to write to the shared preferences.
+     * @param c Context to get the PreferenceManager from.
+     * @param stocksStatus The IntDef value to set
+     */
+    static private void setStocksStatus(Context c, @StocksStatus int stocksStatus){
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(c);
+        SharedPreferences.Editor spe = sp.edit();
+        spe.putInt(c.getString(R.string.pref_stocks_status_key), stocksStatus);
+        spe.commit();
+    }
 
     static private void setCurrentTime(Context c){
         Long currentMillis = System.currentTimeMillis();

@@ -69,19 +69,6 @@ public class Utils {
         return sp.getInt(c.getString(R.string.pref_stocks_status_key), QuoteSyncJob.STOCKS_STATUS_UNKNOWN);
     }
 
-    /**
-     * Sets the stock status into shared preference.  This function should not be called from
-     * the UI thread because it uses commit to write to the shared preferences.
-     * @param c Context to get the PreferenceManager from.
-     * @param stocksStatus The IntDef value to set
-     */
-    static public void setStocksStatus(Context c, @QuoteSyncJob.StocksStatus int stocksStatus){
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(c);
-        SharedPreferences.Editor spe = sp.edit();
-        spe.putInt(c.getString(R.string.pref_stocks_status_key), stocksStatus);
-        spe.commit();
-    }
-
     static public long getLastSyncTime(Context c){
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(c);
         return sp.getLong(c.getString(R.string.pref_current_time_key), 0);
