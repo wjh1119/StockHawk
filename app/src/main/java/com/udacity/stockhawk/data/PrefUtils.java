@@ -64,8 +64,6 @@ public final class PrefUtils {
 
     public static void removeStock(Context context, String symbol) {
         editStockPref(context, symbol, false);
-        DeleteStockTask deleteStockTask = new DeleteStockTask(context);
-        deleteStockTask.execute(symbol);
     }
 
     public static String getDisplayMode(Context context) {

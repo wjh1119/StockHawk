@@ -39,7 +39,7 @@ public final class Contract {
                 COLUMN_PERCENTAGE_CHANGE,
                 COLUMN_HISTORY
         );
-        static final String TABLE_NAME = "quotes";
+        public static final String TABLE_NAME = "quotes";
 
         public static final Uri CONTENT_URI =
                 BASE_URI.buildUpon().appendPath(PATH_QUOTE).build();
