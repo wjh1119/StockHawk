@@ -13,6 +13,7 @@ import android.preference.PreferenceManager;
 import android.support.annotation.IntDef;
 import android.util.Log;
 
+import com.udacity.stockhawk.DeleteStockTask;
 import com.udacity.stockhawk.R;
 import com.udacity.stockhawk.data.Contract;
 import com.udacity.stockhawk.data.PrefUtils;
@@ -100,10 +101,15 @@ public final class QuoteSyncJob {
                 String symbol = iterator.next();
                 Stock stock = quotes.get(symbol);
 
-                if (stock.getCurrency() == null){
+                if (stock != null && stock.getName() != null){
+                    Log.d("QuoteSyncJob","stock is " + stock.getName());
+                }else{
                     clientStockInvalid = true;
                     PrefUtils.removeStock(context,symbol);
-                    break;
+
+                    DeleteStockTask deleteSymbolFromPrefTask = new DeleteStockTask(context);
+                    deleteSymbolFromPrefTask.execute(symbol);
+                    continue;
                 }
                 StockQuote quote = stock.getQuote();
 

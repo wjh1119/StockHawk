@@ -1,8 +1,10 @@
-package com.udacity.stockhawk.data;
+package com.udacity.stockhawk;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.os.AsyncTask;
+
+import com.udacity.stockhawk.data.Contract;
 
 /**
  * Created by Mr.King on 2017/2/22 0022.

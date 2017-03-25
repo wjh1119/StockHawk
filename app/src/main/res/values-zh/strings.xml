@@ -35,7 +35,7 @@
     <string name="error_repetitive_stock">该股票已存在，请勿重复添加</string>
     <string name="error_server_down">无法获得股票信息，服务器未返回信息</string>
     <string name="error_server_invalid">无法获得股票信息，服务器返回错误信息</string>
-    <string name="error_invalid_stock">无法获得股票信息，服务器无法识别该股票</string>
+    <string name="error_invalid_stock">该股票不存在，请检查</string>
     <string name="error_not_newest">请刷新获取最新股价</string>
 
     <string name="toast_stock_added_no_connectivity">添加股票 <xliff:g id="symbol">%s</xliff:g>. 当有网络时刷新</string>

@@ -27,6 +27,7 @@ import com.udacity.stockhawk.R;
 import com.udacity.stockhawk.ToastUtil;
 import com.udacity.stockhawk.Utils;
 import com.udacity.stockhawk.data.Contract;
+import com.udacity.stockhawk.DeleteStockTask;
 import com.udacity.stockhawk.data.PrefUtils;
 import com.udacity.stockhawk.sync.QuoteSyncJob;
 
@@ -88,10 +89,11 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
                 String symbol = adapter.getSymbolAtPosition(viewHolder.getAdapterPosition());
                 PrefUtils.removeStock(MainActivity.this, symbol);
+                DeleteStockTask deleteStockTask = new DeleteStockTask(MainActivity.this);
+                deleteStockTask.execute(symbol);
                 getContentResolver().delete(Contract.Quote.makeUriForStock(symbol), null, null);
             }
         }).attachToRecyclerView(stockRecyclerView);
-
 
     }
 
