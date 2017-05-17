@@ -54,7 +54,7 @@ public final class QuoteSyncJob {
 
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({STOCKS_STATUS_OK, STOCKS_STATUS_SERVER_DOWN, STOCKS_STATUS_SERVER_INVALID,
-            STOCKS_STATUS_UNKNOWN, STOCKS_STATUS_CLIENT_INVALiD})
+            STOCKS_STATUS_UNKNOWN, STOCKS_STATUS_CLIENT_INVALID})
     public @interface StocksStatus {}
 
     public static final int STOCKS_STATUS_OK = 0;
@@ -64,7 +64,7 @@ public final class QuoteSyncJob {
     public static final int
             STOCKS_STATUS_UNKNOWN = 3;
     public static final int
-            STOCKS_STATUS_CLIENT_INVALiD = 4;
+            STOCKS_STATUS_CLIENT_INVALID = 4;
 
     private QuoteSyncJob() {
     }
@@ -144,7 +144,7 @@ public final class QuoteSyncJob {
                             quoteCVs.toArray(new ContentValues[quoteCVs.size()]));
 
             if (clientStockInvalid){
-                setStocksStatus(context, STOCKS_STATUS_CLIENT_INVALiD);
+                setStocksStatus(context, STOCKS_STATUS_CLIENT_INVALID);
             }
             else {
                 setStocksStatus(context, STOCKS_STATUS_OK);

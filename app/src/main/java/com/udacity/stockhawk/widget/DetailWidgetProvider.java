@@ -16,7 +16,7 @@ import com.udacity.stockhawk.sync.QuoteSyncJob;
 import com.udacity.stockhawk.ui.MainActivity;
 
 /**
- * Provider for a scrollable weather detail widget
+ * Provider for a scrollable stock detail widget
  */
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class DetailWidgetProvider extends AppWidgetProvider {
