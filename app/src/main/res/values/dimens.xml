@@ -1,3 +1,21 @@
 <resources>
     <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+
+    <!-- Today Widget -->
+    <dimen name="widget_stock_default_width">110dp</dimen>
+    <dimen name="widget_stock_default_height">40dp</dimen>
+    <dimen name="widget_stock_min_resize_width">40dp</dimen>
+    <dimen name="widget_stock_min_resize_height">@dimen/widget_stock_default_height</dimen>
+    <dimen name="widget_stock_large_width">250dp</dimen>
+
+    <dimen name="widget_detail_default_width">250dp</dimen>
+    <dimen name="widget_detail_default_height">180dp</dimen>
+    <dimen name="widget_detail_min_resize_width">220dp</dimen>
+    <dimen name="widget_detail_min_resize_height">@dimen/widget_detail_default_height</dimen>
+    <dimen name="widget_margin">8dp</dimen>
+
+    <dimen name="StockWidgetTextStyle_small">12sp</dimen>
+    <dimen name="StockWidgetTextStyle_normal">18sp</dimen>
+    <dimen name="StockWidgetTextStyle_large">24sp</dimen>
 </resources>

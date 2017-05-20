@@ -23,20 +23,60 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".ui.DetailActivity"
+            android:label="@string/title_activity_detail"
+            android:parentActivityName="com.udacity.stockhawk.ui.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.udacity.stockhawk.ui.MainActivity" />
+        </activity>
+
         <service
             android:name=".sync.QuoteIntentService"
             android:exported="false" />
+
+        <service android:name=".widget.StockWidgetIntentService" />
 
         <provider
             android:name=".data.StockProvider"
             android:authorities="com.udacity.stockhawk"
             android:exported="false" />
 
+        <!-- Stock Widget -->
         <service
             android:name=".sync.QuoteJobService"
             android:enabled="true"
             android:exported="true"
             android:permission="android.permission.BIND_JOB_SERVICE" />
+
+        <service
+            android:name=".widget.DetailWidgetRemoteViewsService"
+            android:enabled="@bool/widget_detail_enabled"
+            android:exported="false"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
+
+        <receiver
+            android:name=".widget.StockWidgetProvider"
+            android:label="@string/title_widget_stock" >
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.udacity.stockhawk.ACTION_DATA_UPDATED" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_first_stock" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.DetailWidgetProvider"
+            android:label="@string/title_widget_stock" >
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.udacity.stockhawk.ACTION_DATA_UPDATED" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_detail" />
+        </receiver>
     </application>
 
 </manifest>

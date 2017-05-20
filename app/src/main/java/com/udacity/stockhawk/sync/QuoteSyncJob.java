@@ -6,13 +6,25 @@ import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.preference.PreferenceManager;
+import android.support.annotation.IntDef;
+import android.util.Log;
 
+import com.udacity.stockhawk.DeleteStockTask;
+import com.udacity.stockhawk.R;
 import com.udacity.stockhawk.data.Contract;
 import com.udacity.stockhawk.data.PrefUtils;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashSet;
@@ -28,14 +40,31 @@ import yahoofinance.histquotes.HistoricalQuote;
 import yahoofinance.histquotes.Interval;
 import yahoofinance.quotes.stock.StockQuote;
 
+import static com.udacity.stockhawk.Utils.setStocksStatus;
+
 public final class QuoteSyncJob {
 
     private static final int ONE_OFF_ID = 2;
-    private static final String ACTION_DATA_UPDATED = "com.udacity.stockhawk.ACTION_DATA_UPDATED";
+    public static final String ACTION_DATA_UPDATED = "com.udacity.stockhawk.ACTION_DATA_UPDATED";
     private static final int PERIOD = 300000;
     private static final int INITIAL_BACKOFF = 10000;
     private static final int PERIODIC_ID = 1;
-    private static final int YEARS_OF_HISTORY = 2;
+    private static final int YEARS_OF_HISTORY = 1;
+
+
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({STOCKS_STATUS_OK, STOCKS_STATUS_SERVER_DOWN, STOCKS_STATUS_SERVER_INVALID,
+            STOCKS_STATUS_UNKNOWN, STOCKS_STATUS_CLIENT_INVALID})
+    public @interface StocksStatus {}
+
+    public static final int STOCKS_STATUS_OK = 0;
+    public static final int STOCKS_STATUS_SERVER_DOWN = 1;
+    public static final int
+            STOCKS_STATUS_SERVER_INVALID = 2;
+    public static final int
+            STOCKS_STATUS_UNKNOWN = 3;
+    public static final int
+            STOCKS_STATUS_CLIENT_INVALID = 4;
 
     private QuoteSyncJob() {
     }
@@ -47,6 +76,8 @@ public final class QuoteSyncJob {
         Calendar from = Calendar.getInstance();
         Calendar to = Calendar.getInstance();
         from.add(Calendar.YEAR, -YEARS_OF_HISTORY);
+
+        boolean clientStockInvalid = false;
 
         try {
 
@@ -70,9 +101,18 @@ public final class QuoteSyncJob {
 
             while (iterator.hasNext()) {
                 String symbol = iterator.next();
-
-
                 Stock stock = quotes.get(symbol);
+
+                if (stock != null && stock.getName() != null){
+                    Log.d("QuoteSyncJob","stock is " + stock.getName());
+                }else{
+                    clientStockInvalid = true;
+                    PrefUtils.removeStock(context,symbol);
+
+                    DeleteStockTask deleteSymbolFromPrefTask = new DeleteStockTask(context);
+                    deleteSymbolFromPrefTask.execute(symbol);
+                    continue;
+                }
                 StockQuote quote = stock.getQuote();
 
                 float price = quote.getPrice().floatValue();
@@ -81,16 +121,10 @@ public final class QuoteSyncJob {
 
                 // WARNING! Don't request historical data for a stock that doesn't exist!
                 // The request will hang forever X_x
-                List<HistoricalQuote> history = stock.getHistory(from, to, Interval.WEEKLY);
+                List<HistoricalQuote> history = stock.getHistory(from, to, Interval.DAILY);
 
-                StringBuilder historyBuilder = new StringBuilder();
-
-                for (HistoricalQuote it : history) {
-                    historyBuilder.append(it.getDate().getTimeInMillis());
-                    historyBuilder.append(", ");
-                    historyBuilder.append(it.getClose());
-                    historyBuilder.append("\n");
-                }
+                JSONObject historyJson = historicalQuoteListToJson(context,history);
+                Log.d("QuoteSyncJob",historyJson.toString());
 
                 ContentValues quoteCV = new ContentValues();
                 quoteCV.put(Contract.Quote.COLUMN_SYMBOL, symbol);
@@ -98,8 +132,7 @@ public final class QuoteSyncJob {
                 quoteCV.put(Contract.Quote.COLUMN_PERCENTAGE_CHANGE, percentChange);
                 quoteCV.put(Contract.Quote.COLUMN_ABSOLUTE_CHANGE, change);
 
-
-                quoteCV.put(Contract.Quote.COLUMN_HISTORY, historyBuilder.toString());
+                quoteCV.put(Contract.Quote.COLUMN_HISTORY, historyJson.toString());
 
                 quoteCVs.add(quoteCV);
 
@@ -110,12 +143,47 @@ public final class QuoteSyncJob {
                             Contract.Quote.URI,
                             quoteCVs.toArray(new ContentValues[quoteCVs.size()]));
 
-            Intent dataUpdatedIntent = new Intent(ACTION_DATA_UPDATED);
+            if (clientStockInvalid){
+                setStocksStatus(context, STOCKS_STATUS_CLIENT_INVALID);
+            }
+            else {
+                setStocksStatus(context, STOCKS_STATUS_OK);
+                setCurrentTime(context);
+            }
+
+
+            Intent dataUpdatedIntent = new Intent(ACTION_DATA_UPDATED)
+                    .setPackage(context.getPackageName());
             context.sendBroadcast(dataUpdatedIntent);
 
         } catch (IOException exception) {
             Timber.e(exception, "Error fetching stock quotes");
+            setStocksStatus(context, STOCKS_STATUS_SERVER_DOWN);
         }
+    }
+
+    public static JSONObject historicalQuoteListToJson(Context context, List<HistoricalQuote> history){
+        JSONObject historyJson = new JSONObject();
+        JSONArray jsonMembers = new JSONArray();
+        try{
+            for (HistoricalQuote it : history) {
+                JSONObject item = new JSONObject();
+                item.put("date", it.getDate().getTimeInMillis());
+                item.put("open", it.getOpen());
+                item.put("close",it.getClose());
+                item.put("high", it.getHigh());
+                item.put("low", it.getLow());
+                item.put("vol", it.getVolume());
+                jsonMembers.put(item);
+            }
+            historyJson.put("history",jsonMembers);
+        } catch (JSONException exception) {
+            Timber.e(exception, "Error fetching stock quotes");
+            exception.printStackTrace();
+            setStocksStatus(context, STOCKS_STATUS_SERVER_INVALID);
+        }
+
+        return historyJson;
     }
 
     private static void schedulePeriodic(Context context) {
@@ -169,4 +237,16 @@ public final class QuoteSyncJob {
     }
 
 
+
+    static private void setCurrentTime(Context c){
+        Long currentMillis = System.currentTimeMillis();
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(c);
+        SharedPreferences.Editor spe = sp.edit();
+        spe.putLong(c.getString(R.string.pref_current_time_key), currentMillis);
+        spe.commit();
+    }
+
+    static public int getPeriod(){
+        return PERIOD;
+    }
 }

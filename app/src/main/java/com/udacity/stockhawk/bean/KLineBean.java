@@ -1,0 +1,15 @@
+package com.udacity.stockhawk.bean;
+
+/**
+ * author：ajiang
+ * mail：1025065158@qq.com
+ * blog：http://blog.csdn.net/qqyanjiang
+ */
+public class KLineBean {
+    public long date;
+    public float open;
+    public float close;
+    public float high;
+    public float low;
+    public Long vol;
+}
